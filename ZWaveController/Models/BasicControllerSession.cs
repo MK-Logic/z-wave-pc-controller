@@ -4327,7 +4327,8 @@ namespace ZWaveController.Models
             _device.SessionClient.AddSubstituteManager(sm, sm.CreateSecurityReportTask(), sm.CreateSecurityS2ReportTask(),
                 sm.CreateInclusionControllerSupportTask(
                     InclusionControllerUpdateCallback,
-                    InclusionControllerStatusUpdateCallback));
+                    InclusionControllerStatusUpdateCallback),
+                sm.CreateRequestProtocolCcEncryptionOperation(action => _device.SessionClient.ExecuteAsync(action)));
             SecurityManager = sm;
             SecurityManager.SecurityManagerInfo.CheckIfSupportSecurityCC = true;
             SetupSecurityManagerInfo(securitySettings);
