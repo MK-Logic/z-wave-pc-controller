@@ -157,6 +157,7 @@ namespace ZWaveController.Models
                     _device.GetPRK();
                     _device.SerialApiGetInitData();
                     _device.SerialApiGetCapabilities();
+                    _device.SyncNlsStateFromModule();
                     if (_device.Library == Libraries.EndDeviceSysTestLib ||
                         _device.Library == Libraries.EndDeviceLib ||
                         _device.Library == Libraries.ControllerStaticLib ||
