@@ -21,6 +21,8 @@ namespace ZWaveControllerUI.Commands
         {
         }
 
+        protected override bool ShowBusyOverlay => false;
+
         protected override void ExecuteInner(object param)
         {
             var mainViewModel = (MainViewModel)ApplicationModel;
