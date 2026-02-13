@@ -157,7 +157,6 @@ namespace ZWaveController.Models
                     _device.GetPRK();
                     _device.SerialApiGetInitData();
                     _device.SerialApiGetCapabilities();
-                    _device.SyncNlsStateFromModule();
                     if (_device.Library == Libraries.EndDeviceSysTestLib ||
                         _device.Library == Libraries.EndDeviceLib ||
                         _device.Library == Libraries.ControllerStaticLib ||
@@ -203,6 +202,10 @@ namespace ZWaveController.Models
                             StartListener();
                             StopSmartListener();
                             StartSmartListener();
+
+                            // Sync NLS state from module so NLS Node List Get can be answered correctly
+                            // (runs after session is up so module NVM / 0xC0 is ready)
+                            _device.SyncNlsStateFromModule();
 
                             SerialPortMonitor?.Open();
                             ApplicationModel.IsNeedFirstReloadTopology = true;
