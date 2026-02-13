@@ -18,13 +18,29 @@ namespace ZWaveController.Commands
 
         protected override sealed void ExecuteAction(object param)
         {
-            ApplicationModel.Invoke(() => ApplicationModel.SetBusy(true));
-            ApplicationModel.Invoke(() => ApplicationModel.SetBusyMessage($"Waiting for Completed Action"));
+            if (ShowBusyOverlay)
+            {
+                ApplicationModel.Invoke(() => ApplicationModel.SetBusy(true));
+                ApplicationModel.Invoke(() => ApplicationModel.SetBusyMessage(BusyMessage));
+            }
             ApplicationModel.ActiveCommand = this;
-            ExecuteInner(param);
-            ApplicationModel.ActiveCommand = null;
-            ApplicationModel.Invoke(() => ApplicationModel.SetBusy(false));
+            try
+            {
+                ExecuteInner(param);
+            }
+            finally
+            {
+                ApplicationModel.ActiveCommand = null;
+                if (ShowBusyOverlay)
+                    ApplicationModel.Invoke(() => ApplicationModel.SetBusy(false));
+            }
         }
+
+        /// <summary>When true, a blocking overlay is shown during the command. Override to false to avoid blocking the UI (e.g. startup init).</summary>
+        protected virtual bool ShowBusyOverlay => true;
+
+        /// <summary>Message shown in the overlay when ShowBusyOverlay is true. Override to show a specific message.</summary>
+        protected virtual string BusyMessage => "Waiting for Completed Action";
 
         protected virtual void ExecuteInner(object param)
         {
