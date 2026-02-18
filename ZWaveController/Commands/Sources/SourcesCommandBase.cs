@@ -36,7 +36,7 @@ namespace ZWaveController.Commands
             }
         }
 
-        /// <summary>When true, a blocking overlay is shown during the command. Override to false to avoid blocking the UI (e.g. startup init).</summary>
+        /// <summary>When true, a blocking overlay is shown during the command. Override to false to avoid blocking the UI.</summary>
         protected virtual bool ShowBusyOverlay => true;
 
         /// <summary>Message shown in the overlay when ShowBusyOverlay is true. Override to show a specific message.</summary>
