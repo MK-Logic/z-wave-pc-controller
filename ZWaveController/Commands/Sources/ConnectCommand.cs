@@ -1,6 +1,7 @@
 /// SPDX-License-Identifier: BSD-3-Clause
 /// SPDX-FileCopyrightText: Silicon Laboratories Inc. https://www.silabs.com
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Threading;
 using Utils;
 using ZWave.Enums;
 using ZWaveController.Enums;
@@ -63,7 +64,15 @@ namespace ZWaveController.Commands
             if (ControllerSessionsContainer.Add(selectedDataSource.SourceId, controllerSession))
             {
                 ApplicationModel.TraceCapture.Init(selectedDataSource.SourceId);
-                if (controllerSession.Connect(selectedDataSource) == CommunicationStatuses.Done)
+                var connected = controllerSession.Connect(selectedDataSource) == CommunicationStatuses.Done;
+                if (!connected)
+                {
+                    controllerSession.Logger.Log("First connect attempt failed; retrying once in 1.5 s ...");
+                    ApplicationModel.Invoke(() => ApplicationModel.SetBusyMessage("Reconnecting to " + selectedDataSource.SourceName + " ..."));
+                    Thread.Sleep(1500);
+                    connected = controllerSession.Connect(selectedDataSource) == CommunicationStatuses.Done;
+                }
+                if (connected)
                 {
                     ApplicationModel.LastCommandExecutionResult = CommandExecutionResult.OK;
                     controllerSession.Logger.LogOk($"Connected to {selectedDataSource.SourceName}");
