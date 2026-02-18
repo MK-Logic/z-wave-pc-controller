@@ -21,7 +21,8 @@ namespace ZWaveControllerUI.Commands
         {
         }
 
-        protected override bool ShowBusyOverlay => false;
+        /// <summary>Overrides default so the overlay shows a startup message (inferior ConnectCommand will then show "Connecting to Source").</summary>
+        protected override string BusyMessage => "Starting up ...";
 
         protected override void ExecuteInner(object param)
         {
