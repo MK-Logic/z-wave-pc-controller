@@ -3,9 +3,11 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -38,6 +40,7 @@ namespace ZWaveControllerUI
         {
             try
             {
+                DisconnectAllSessions();
                 _logFileStream?.Close();
             }
             catch (Exception)
@@ -274,19 +277,25 @@ namespace ZWaveControllerUI
 
         private void OnMainWindowClosing(object sender, CancelEventArgs e)
         {
-            CommandReference cmdRef = new CommandReference();
-            cmdRef.Command = CommandsFactory.CommandBaseGet<CommandBase>(param =>
+            _applicationModel.SetBusyMessage("Closing ...");
+            DisconnectAllSessions();
+        }
+
+        /// <summary>Disconnects all controller sessions and waits so the serial port is released before process exit.</summary>
+        private static void DisconnectAllSessions()
+        {
+            while (ControllerSessionsContainer.ControllerSessions.Count > 0)
             {
-                _applicationModel.SetBusyMessage("Closing…");
-                if (ControllerSessionsContainer.ControllerSessions.Count > 0)
+                var session = ControllerSessionsContainer.ControllerSessions.Values.FirstOrDefault();
+                if (session?.DataSource == null)
                 {
-                    var controllerSession = ControllerSessionsContainer.ControllerSessions.Last().Value;
-                    controllerSession.Disconnect();
-                    ControllerSessionsContainer.Remove(controllerSession.DataSource.SourceName);
+                    break;
                 }
-            });
-            cmdRef.Execute(null);
-            //{ MainViewModel = _mainViewModel, IsBusy = true, UseBackgroundThread = true };
+                var sourceId = session.DataSource.SourceId;
+                ControllerSessionsContainer.Remove(sourceId);
+            }
+            int delayMs = Debugger.IsAttached ? 1500 : 700;
+            Thread.Sleep(delayMs);
         }
 
 #if !DEBUG

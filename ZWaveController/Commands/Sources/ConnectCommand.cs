@@ -1,6 +1,8 @@
 /// SPDX-License-Identifier: BSD-3-Clause
 /// SPDX-FileCopyrightText: Silicon Laboratories Inc. https://www.silabs.com
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 using Utils;
 using ZWave.Enums;
 using ZWaveController.Enums;
@@ -63,7 +65,47 @@ namespace ZWaveController.Commands
             if (ControllerSessionsContainer.Add(selectedDataSource.SourceId, controllerSession))
             {
                 ApplicationModel.TraceCapture.Init(selectedDataSource.SourceId);
-                if (controllerSession.Connect(selectedDataSource) == CommunicationStatuses.Done)
+                // Delay before first connect so the OS can release the port from a previous run.
+                // When debugging, the previous session may have been stopped abruptly so wait longer.
+                if (ApplicationModel.DataSource == null)
+                {
+                    int delayMs = Debugger.IsAttached ? 2500 : 500;
+                    if (Debugger.IsAttached)
+                    {
+                        controllerSession.Logger.Log("Debugger attached; waiting for port ...");
+                    }
+                    Thread.Sleep(delayMs);
+                }
+                var connected = controllerSession.Connect(selectedDataSource) == CommunicationStatuses.Done;
+                if (!connected)
+                {
+                    controllerSession.Logger.Log("First connect attempt failed; retrying in 2 s ...");
+                    ApplicationModel.Invoke(() => ApplicationModel.SetBusyMessage("Reconnecting to " + selectedDataSource.SourceName + " ..."));
+                    Thread.Sleep(2000);
+                    connected = controllerSession.Connect(selectedDataSource) == CommunicationStatuses.Done;
+                }
+                if (!connected)
+                {
+                    controllerSession.Logger.Log("Second attempt failed; retrying in 4 s ...");
+                    ApplicationModel.Invoke(() => ApplicationModel.SetBusyMessage("Reconnecting to " + selectedDataSource.SourceName + " ..."));
+                    Thread.Sleep(4000);
+                    connected = controllerSession.Connect(selectedDataSource) == CommunicationStatuses.Done;
+                }
+                if (!connected && Debugger.IsAttached)
+                {
+                    controllerSession.Logger.Log("Third attempt (debugging); retrying in 8 s ...");
+                    ApplicationModel.Invoke(() => ApplicationModel.SetBusyMessage("Reconnecting to " + selectedDataSource.SourceName + " ..."));
+                    Thread.Sleep(8000);
+                    connected = controllerSession.Connect(selectedDataSource) == CommunicationStatuses.Done;
+                }
+                if (!connected && Debugger.IsAttached)
+                {
+                    controllerSession.Logger.Log("Fourth attempt (debugging); retrying in 12 s ...");
+                    ApplicationModel.Invoke(() => ApplicationModel.SetBusyMessage("Reconnecting to " + selectedDataSource.SourceName + " ..."));
+                    Thread.Sleep(12000);
+                    connected = controllerSession.Connect(selectedDataSource) == CommunicationStatuses.Done;
+                }
+                if (connected)
                 {
                     ApplicationModel.LastCommandExecutionResult = CommandExecutionResult.OK;
                     controllerSession.Logger.LogOk($"Connected to {selectedDataSource.SourceName}");
