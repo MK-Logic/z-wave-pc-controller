@@ -4332,7 +4332,16 @@ namespace ZWaveController.Models
                 sm.CreateInclusionControllerSupportTask(
                     InclusionControllerUpdateCallback,
                     InclusionControllerStatusUpdateCallback),
-                sm.CreateRequestProtocolCcEncryptionOperation(action => _device.SessionClient.ExecuteAsync(action)));
+                sm.CreateRequestProtocolCcEncryptionOperation(
+                    action => _device.SessionClient.ExecuteAsync(action),
+                    (nodeId, payload, txStatus, txReport) => _device.SessionClient.ExecuteAsync(
+                        new ZWave.BasicApplication.Operations.CompleteSendDataForNlsOperation(
+                            _device.SessionClient,
+                            a => _device.SessionClient.ExecuteAsync(a),
+                            nodeId,
+                            payload,
+                            txStatus,
+                            txReport))));
             SecurityManager = sm;
             SecurityManager.SecurityManagerInfo.CheckIfSupportSecurityCC = true;
             SetupSecurityManagerInfo(securitySettings);
