@@ -1782,7 +1782,7 @@ namespace ZWaveController.Models
             {
                 if (requestDataResult.State == ActionStates.Cancelled)
                 {
-                    Logger.LogFail("Power Level Operation Cancelled");
+                    Logger.LogFail("Power Level Operation Canceled");
                     ret = CommandExecutionResult.Canceled;
                 }
                 else
@@ -1997,7 +1997,7 @@ namespace ZWaveController.Models
                 {
                     if (result.State == ActionStates.Cancelled)
                     {
-                        Logger.LogFail("Learn Mode Operation Cancelled");
+                        Logger.LogFail("Learn Mode Operation Canceled");
                         ret = CommandExecutionResult.Canceled;
                     }
                     else
@@ -2972,7 +2972,7 @@ namespace ZWaveController.Models
                     {
                         if (!_device.IsEndDeviceApi)
                         {
-                            Thread.Sleep(1200); //Device is not fast enough to reset itself (S2 behaviour) 600 + Broadcast frame 600
+                            Thread.Sleep(1200); //Device is not fast enough to reset itself (S2 behavior) 600 + Broadcast frame 600
                             var item = ApplicationModel.ConfigurationItem.PreKitting.ProvisioningList.FirstOrDefault(i => i.NodeId == node.Id);
                             _device.SendData(node, new byte[1], ControllerSessionsContainer.Config.TxOptions); // nop to ensure that device is reset
                             var removeFailedRes = RemoveFailedNode(node, out _removeFailedToken);
@@ -3355,7 +3355,7 @@ namespace ZWaveController.Models
 
         public void CancelFirmwareUpdateOTADownload()
         {
-            ApplicationModel.SetBusyMessage("OTA Firmware Download cancelling.");
+            ApplicationModel.SetBusyMessage("OTA Firmware Download canceling.");
             ApplicationModel.FirmwareUpdateModel.DownloadFirmwareData = null;
             _isDownloadCancelled = true;
         }
