@@ -42,9 +42,15 @@ namespace ZWaveController.Commands
             {
                 ApplicationModel.Invoke(() => ApplicationModel.SetBusy(IsModelBusy));
             }
-            ApplicationModel.ActiveCommand = this;
-            ExecuteInner(param);
-            ApplicationModel.ActiveCommand = previousActiveCommand;
+            ApplicationModel.Invoke(() => ApplicationModel.ActiveCommand = this);
+            try
+            {
+                ExecuteInner(param);
+            }
+            finally
+            {
+                ApplicationModel.Invoke(() => ApplicationModel.ActiveCommand = previousActiveCommand);
+            }
             if (IsModelBusy)
             {
                 ApplicationModel.Invoke(() => ApplicationModel.SetBusy(false));
